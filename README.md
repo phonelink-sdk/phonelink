@@ -3,7 +3,7 @@
 Phone number verification for web and mobile apps.
 
 [![npm](https://img.shields.io/npm/v/phonelink)](https://www.npmjs.com/package/phonelink)
-[![license](https://img.shields.io/npm/l/phonelink)](https://github.com/your-username/phonelink/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/phonelink)](https://github.com/vrl-inc/phonelink/blob/main/LICENSE)
 
 ## Install
 
