@@ -1,0 +1,176 @@
+---
+title: Expo / React Native
+description: Integrate Phonelink phone verification in Expo and React Native apps.
+---
+
+## Overview
+
+The Expo client uses an **in-app browser** for verification. Unlike the web client's redirect flow, the user stays within your app — Phonelink opens in a secure browser session, and the result is returned directly when the browser closes.
+
+## Install
+
+Install the Phonelink SDK and required Expo peer dependencies:
+
+```bash
+npm install phonelink
+npx expo install expo-crypto expo-web-browser
+```
+
+`expo-crypto` is used to generate cryptographic nonces, and `expo-web-browser` provides the in-app authentication browser session.
+
+## Basic usage
+
+```tsx
+import { phonelink } from "phonelink/expo";
+
+async function verifyPhone() {
+  const result = await phonelink.verify("your-client-id");
+
+  if (result) {
+    // Send to your server for verification
+    await fetch("https://api.myapp.com/verify-phone", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: result.token, nonce: result.nonce }),
+    });
+  } else {
+    console.log("User cancelled verification");
+  }
+}
+```
+
+## How it works
+
+When you call `phonelink.verify()`:
+
+1. A cryptographic nonce is generated using `expo-crypto`
+2. The Phonelink verification page opens in an in-app browser via `WebBrowser.openAuthSessionAsync`
+3. The user completes phone verification
+4. Phonelink redirects to your app's deep link URL with the token
+5. The browser closes and `verify()` returns `{ token, nonce }`
+
+If the user cancels (closes the browser without completing verification), `verify()` returns `null`.
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `clientId` | `string` | — | Your Phonelink client ID |
+| `redirectUrl` | `string` | `"phonelink://verify"` | Deep link URI for your app |
+
+## Deep link configuration
+
+The default redirect URL is `phonelink://verify`. To use this, configure the URL scheme in your Expo app.
+
+### Using app.json / app.config.js
+
+```json title="app.json"
+{
+  "expo": {
+    "scheme": "phonelink"
+  }
+}
+```
+
+### Custom redirect URL
+
+If your app already has a URL scheme, pass it as the second argument:
+
+```ts
+const result = await phonelink.verify(
+  "your-client-id",
+  "myapp://auth/callback",
+);
+```
+
+Make sure the scheme matches what's configured in your `app.json`:
+
+```json title="app.json"
+{
+  "expo": {
+    "scheme": "myapp"
+  }
+}
+```
+
+## Full component example
+
+```tsx
+import { useState } from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { phonelink } from "phonelink/expo";
+
+export function PhoneVerification() {
+  const [status, setStatus] = useState<"idle" | "verifying" | "sending" | "done" | "error">("idle");
+  const [phone, setPhone] = useState<string | null>(null);
+
+  async function handleVerify() {
+    setStatus("verifying");
+
+    const result = await phonelink.verify("your-client-id");
+
+    if (!result) {
+      setStatus("idle");
+      return;
+    }
+
+    setStatus("sending");
+
+    try {
+      const response = await fetch("https://api.myapp.com/verify-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: result.token, nonce: result.nonce }),
+      });
+
+      if (!response.ok) throw new Error("Verification failed");
+
+      const data = await response.json();
+      setPhone(data.phone);
+      setStatus("done");
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  if (status === "done" && phone) {
+    return (
+      <View>
+        <Text>Phone verified: {phone}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      {status === "error" && <Text>Verification failed. Try again.</Text>}
+
+      <TouchableOpacity onPress={handleVerify} disabled={status !== "idle" && status !== "error"}>
+        {status === "verifying" || status === "sending" ? (
+          <ActivityIndicator />
+        ) : (
+          <Text>Verify Phone Number</Text>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+```
+
+## Server verification
+
+After receiving the result, verify the token on your server. The server-side verification is identical for web and Expo — see the [Server Verification](/docs/server) guide.
+
+## Troubleshooting
+
+### Browser doesn't close after verification
+
+Make sure your redirect URL scheme is correctly configured in `app.json` and matches the `redirectUrl` parameter (or the default `phonelink://verify`).
+
+### `expo-web-browser` not found
+
+Run `npx expo install expo-web-browser` to install it. The package must be installed separately as it's a peer dependency.
+
+### `expo-crypto` not found
+
+Run `npx expo install expo-crypto` to install it. This package provides the cryptographic nonce generation.

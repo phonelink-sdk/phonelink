@@ -1,0 +1,118 @@
+---
+title: React
+description: Use the usePhonelink hook to integrate phone verification into React apps.
+---
+
+## Overview
+
+The `usePhonelink` hook manages the entire redirect-based verification flow in a single hook. It handles starting the flow, detecting the callback page, and extracting the result.
+
+## Install
+
+```bash
+npm install phonelink
+```
+
+Phonelink requires React 18 or later as a peer dependency.
+
+## Basic usage
+
+```tsx
+import { usePhonelink } from "phonelink/web";
+
+function VerifyPhone() {
+  const { startAuth, result, isCallback } = usePhonelink({
+    clientId: "your-client-id",
+    callbackUrl: "https://myapp.com/auth/callback",
+  });
+
+  if (result) {
+    return <p>Phone verified! Confirming with server...</p>;
+  }
+
+  if (isCallback) {
+    return <p>Processing verification...</p>;
+  }
+
+  return (
+    <button onClick={startAuth}>
+      Verify Phone Number
+    </button>
+  );
+}
+```
+
+## How it works
+
+The hook uses the same `phonelink.startAuth` and `phonelink.handleCallback` methods as the [vanilla JS integration](/docs/web/vanilla), wrapped in React state management.
+
+**On mount**, the hook calls `phonelink.handleCallback()` to check if the current page is a callback page (i.e. the URL contains a `token` query parameter). If a token is found:
+- `result` is set to `{ token, nonce }`
+- `isCallback` is set to `true`
+
+**On the start page**, `result` is `null`, `isCallback` is `false`, and `startAuth()` is available to begin the flow.
+
+## Hook options
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `clientId` | `string` | Your Phonelink client ID |
+| `callbackUrl` | `string` | URL to redirect back to after verification |
+
+## Return value
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `startAuth` | `() => void` | Call to redirect the user to Phonelink for verification |
+| `result` | `{ token: string; nonce: string } \| null` | The verification result, or `null` if not on callback page |
+| `isCallback` | `boolean` | `true` when the current page is the callback page |
+
+## Sending the result to your server
+
+Once `result` is available, send the token and nonce to your backend for verification:
+
+```tsx
+import { usePhonelink } from "phonelink/web";
+import { useEffect, useState } from "react";
+
+function VerifyPhone() {
+  const { startAuth, result, isCallback } = usePhonelink({
+    clientId: "your-client-id",
+    callbackUrl: "https://myapp.com/auth/callback",
+  });
+  const [phone, setPhone] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!result) return;
+
+    fetch("/api/verify-phone", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: result.token, nonce: result.nonce }),
+    })
+      .then((res) => res.json())
+      .then((data) => setPhone(data.phone))
+      .catch(() => setError("Verification failed"));
+  }, [result]);
+
+  if (error) return <p>{error}</p>;
+  if (phone) return <p>Verified: {phone}</p>;
+  if (isCallback) return <p>Verifying...</p>;
+
+  return <button onClick={startAuth}>Verify Phone Number</button>;
+}
+```
+
+## Using the same component on both pages
+
+If you use `usePhonelink` in a component that renders on both the start page and the callback page (e.g. in a single-page app), the hook handles both cases automatically:
+
+- On the start page: `result` is `null`, use `startAuth` to begin
+- On the callback page: `result` is populated, `isCallback` is `true`
+
+This makes it easy to use a single component for the entire flow without any routing logic.
+
+## Server verification
+
+After receiving the result on your frontend, always verify the token on your server. See the [Server Verification](/docs/server) guide.

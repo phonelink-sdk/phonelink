@@ -1,0 +1,74 @@
+---
+title: phonelink/web
+description: API reference for the Phonelink web client.
+---
+
+## Exports
+
+The `phonelink/web` entry point exports the following:
+
+| Export | Type | Description |
+| --- | --- | --- |
+| `phonelink` | `object` | Web client with `startAuth` and `handleCallback` methods |
+| `usePhonelink` | `function` | React hook for the full verification flow |
+| `PhonelinkPayload` | `type` | TypeScript type for the decoded JWT payload |
+
+---
+
+## `phonelink.startAuth(clientId, callbackUrl)`
+
+Starts the phone verification flow by redirecting to Phonelink.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `clientId` | `string` | Your Phonelink client ID |
+| `callbackUrl` | `string` | URL to redirect back to after verification |
+
+**Returns:** `void`
+
+Generates a 32-byte cryptographic nonce, stores it in `sessionStorage` under the key `phonelink_nonce`, and redirects the browser to `https://phone.link/auth` with the client ID, callback URL, and nonce as query parameters.
+
+---
+
+## `phonelink.handleCallback()`
+
+Reads the verification result on the callback page.
+
+**Parameters:** none
+
+**Returns:** `{ token: string; nonce: string } | null`
+
+Extracts the `token` from the URL query parameters and retrieves the nonce from `sessionStorage`. Removes the nonce from storage after retrieval. Returns `null` if no token is found in the URL or if the nonce is missing from storage.
+
+---
+
+## `usePhonelink(options)`
+
+React hook that manages the full verification flow.
+
+### Options
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `clientId` | `string` | Your Phonelink client ID |
+| `callbackUrl` | `string` | URL to redirect back to after verification |
+
+### Return value
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `startAuth` | `() => void` | Initiates the verification flow |
+| `result` | `{ token: string; nonce: string } \| null` | Verification result, or `null` |
+| `isCallback` | `boolean` | Whether the current page is the callback page |
+
+On mount, the hook calls `handleCallback()` to check for a token in the URL. If found, `result` is populated and `isCallback` is `true`. The `startAuth` function is memoized with `useCallback` and only changes when `clientId` or `callbackUrl` change.
+
+---
+
+## `PhonelinkPayload`
+
+TypeScript interface for the decoded JWT payload. See [Server Verification](/docs/server) for the full property list.
+
+```ts
+import type { PhonelinkPayload } from "phonelink/web";
+```

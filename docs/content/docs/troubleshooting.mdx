@@ -1,0 +1,141 @@
+---
+title: Troubleshooting
+description: Common issues, error messages, and debugging tips for Phonelink integrations.
+---
+
+## Common errors
+
+### "Nonce mismatch"
+
+**Cause:** The nonce stored on the client doesn't match the nonce embedded in the JWT token.
+
+**Possible reasons:**
+- The user opened the verification flow in one tab and completed it in another
+- The user's browser cleared `sessionStorage` between starting and completing the flow
+- The nonce was already consumed by a previous `handleCallback()` call (e.g. the page was refreshed)
+- On Expo, the app was backgrounded and the in-memory nonce was lost
+
+**Fix:**
+- Ensure the user completes verification in the same browser tab they started from
+- Don't call `handleCallback()` more than once per flow
+- On Expo, ensure the app stays in the foreground during verification
+
+### "Phone number not verified"
+
+**Cause:** The JWT was issued but the `verified` claim is `false`, meaning the user did not complete phone verification.
+
+**Fix:** This shouldn't happen in normal flows. If you see this error, the user may have found a way to obtain a token without completing the verification step. The server correctly rejects it.
+
+### `JWSSignatureVerificationFailed`
+
+**Cause:** The JWT signature could not be verified against the Phonelink JWKS keys.
+
+**Possible reasons:**
+- The token was tampered with
+- The token was not issued by Phonelink
+- Network issues prevented fetching the JWKS keys
+
+**Fix:** Ensure you're passing the raw token string without modification. Check that your server can reach `https://phone.link/.well-known/jwks.json`.
+
+### `JWTExpired`
+
+**Cause:** The token's `exp` (expiry) timestamp has passed.
+
+**Possible reasons:**
+- Too much time elapsed between the user completing verification and your server validating the token
+- Clock skew between your server and Phonelink's servers
+
+**Fix:** Ensure your server processes the token promptly after receiving it from the client. Check that your server's clock is accurate (use NTP).
+
+### `JWTClaimValidationFailed`
+
+**Cause:** The token's `iss` (issuer) or `aud` (audience) claim doesn't match the expected values.
+
+**Possible reasons:**
+- The `expectedAud` parameter doesn't match your actual Phonelink client ID
+- The token was issued for a different client ID
+
+**Fix:** Verify that the client ID you pass to `verifyPhonelinkToken` exactly matches the one used in `startAuth` or `phonelink.verify` on the client.
+
+### `handleCallback()` returns `null`
+
+**Cause:** No `token` parameter found in the URL, or no nonce found in `sessionStorage`.
+
+**Possible reasons:**
+- The page is not actually a callback page (no `?token=...` in the URL)
+- The nonce was already consumed by a previous `handleCallback()` call
+- `sessionStorage` was cleared (e.g. the user closed and reopened the tab)
+
+**Fix:**
+- Ensure Phonelink is configured to redirect to the correct callback URL
+- Only call `handleCallback()` once per page load
+- Make sure the callback URL in `startAuth` matches the page where `handleCallback` runs
+
+### Expo: `phonelink.verify()` returns `null`
+
+**Cause:** The user cancelled the verification flow by closing the in-app browser.
+
+**Fix:** This is expected behavior. Show the user a message or allow them to try again.
+
+## Debugging tips
+
+### Inspect the JWT token
+
+You can decode the token (without verifying) to inspect its claims:
+
+```ts
+const [, payloadBase64] = token.split(".");
+const payload = JSON.parse(atob(payloadBase64));
+console.log(payload);
+```
+
+This is useful for debugging but should never be used as a substitute for proper verification.
+
+### Check the callback URL
+
+After Phonelink redirects back to your app, check the full URL to ensure the `token` parameter is present:
+
+```ts
+console.log(window.location.href);
+// Should include ?token=eyJ...
+```
+
+### Verify network connectivity
+
+The server needs to reach the JWKS endpoint at `https://phone.link/.well-known/jwks.json`. Test this with:
+
+```bash
+curl https://phone.link/.well-known/jwks.json
+```
+
+If this fails, check your server's network configuration, firewall rules, and DNS resolution.
+
+### Check client ID consistency
+
+A common source of errors is using different client IDs on the client and server. Ensure:
+- `startAuth("client-id", ...)` on the client
+- `verifyPhonelinkToken(token, nonce, "client-id")` on the server
+
+Both must use the exact same client ID string.
+
+## FAQ
+
+### Can I verify the token on the client instead of the server?
+
+No. Client-side verification is insecure because the client environment is untrusted. An attacker could modify client-side code to skip verification. Always verify on the server.
+
+### How long are tokens valid?
+
+Tokens have a short expiry set by Phonelink. Always process them promptly after receiving them from the client.
+
+### Can I use the same token twice?
+
+While the token itself doesn't become invalid after one use, the nonce is consumed on the client side after a single `handleCallback()` call. For server-side deduplication, you can track the `jti` (JWT ID) claim to prevent processing the same token twice.
+
+### Does Phonelink support phone numbers from all countries?
+
+Phonelink supports international phone numbers. Verified numbers are returned in E.164 format (e.g. `"+14155551234"` for US, `"+447911123456"` for UK).
+
+### What happens if the JWKS keys rotate?
+
+Key rotation is handled transparently. The `jose` library automatically refetches the JWKS when it encounters a key ID that isn't in its cache.

@@ -1,0 +1,67 @@
+---
+title: phonelink/expo
+description: API reference for the Phonelink Expo/React Native client.
+---
+
+## Exports
+
+The `phonelink/expo` entry point exports the following:
+
+| Export | Type | Description |
+| --- | --- | --- |
+| `phonelink` | `object` | Expo client with a `verify` method |
+| `PhonelinkPayload` | `type` | TypeScript type for the decoded JWT payload |
+
+---
+
+## `phonelink.verify(clientId, redirectUrl?)`
+
+Opens a secure in-app browser for phone number verification and returns the result.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `clientId` | `string` | — | Your Phonelink client ID |
+| `redirectUrl` | `string` | `"phonelink://verify"` | Deep link URI for your app |
+
+### Returns
+
+`Promise<{ token: string; nonce: string } | null>`
+
+- On **success**: returns `{ token, nonce }` where `token` is the signed JWT and `nonce` is the cryptographic nonce generated for this session
+- On **cancellation**: returns `null` if the user closes the browser without completing verification
+
+### Behavior
+
+1. Generates a 32-byte cryptographic nonce using `expo-crypto`
+2. Builds the Phonelink auth URL with `clientId`, `redirectUrl`, and `nonce`
+3. Opens the URL in an in-app browser via `WebBrowser.openAuthSessionAsync`
+4. Waits for the user to complete verification or cancel
+5. On success, extracts the `token` from the redirect URL's query parameters
+6. Returns `{ token, nonce }` or `null`
+
+### Peer dependencies
+
+This function requires the following Expo packages to be installed:
+
+| Package | Purpose |
+| --- | --- |
+| `expo-crypto` | Cryptographic nonce generation |
+| `expo-web-browser` | In-app authentication browser session |
+
+Install them with:
+
+```bash
+npx expo install expo-crypto expo-web-browser
+```
+
+---
+
+## `PhonelinkPayload`
+
+TypeScript interface for the decoded JWT payload. This is the same type exported by all entry points. See the [Server API Reference](/docs/api-reference/server#phonelinkpayload) for the full property list.
+
+```ts
+import type { PhonelinkPayload } from "phonelink/expo";
+```

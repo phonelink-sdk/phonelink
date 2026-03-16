@@ -1,0 +1,68 @@
+{
+  "name": "phonelink",
+  "version": "1.0.0",
+  "description": "Phone number verification SDK",
+  "exports": {
+    "./expo": {
+      "types": "./dist/expo/index.d.ts",
+      "import": "./dist/expo/index.mjs",
+      "require": "./dist/expo/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.mjs",
+      "require": "./dist/server/index.js"
+    },
+    "./web": {
+      "types": "./dist/web/index.d.ts",
+      "import": "./dist/web/index.mjs",
+      "require": "./dist/web/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "expo": [
+        "dist/expo/index.d.ts"
+      ],
+      "server": [
+        "dist/server/index.d.ts"
+      ],
+      "web": [
+        "dist/web/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "expo-crypto": ">=15.0.0",
+    "expo-web-browser": ">=15.0.0",
+    "react": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "expo-crypto": {
+      "optional": true
+    },
+    "expo-web-browser": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "jose": "^6.0.11"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "expo-crypto": "~15.0.8",
+    "expo-web-browser": "~15.0.10",
+    "tsup": "^8.4.0",
+    "typescript": "~5.9.2"
+  }
+}

@@ -1,0 +1,77 @@
+---
+title: phonelink/server
+description: API reference for the Phonelink server-side token verification.
+---
+
+## Exports
+
+The `phonelink/server` entry point exports the following:
+
+| Export | Type | Description |
+| --- | --- | --- |
+| `verifyPhonelinkToken` | `function` | Verifies a Phonelink JWT token |
+| `PhonelinkPayload` | `type` | TypeScript type for the decoded JWT payload |
+
+---
+
+## `verifyPhonelinkToken(token, expectedNonce, expectedAud)`
+
+Verifies a Phonelink JWT token against the JWKS endpoint.
+
+### Parameters
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `token` | `string` | The JWT returned from the client verification flow |
+| `expectedNonce` | `string` | The nonce returned alongside the token, for replay protection |
+| `expectedAud` | `string` | Your Phonelink client ID (must match the token's `aud` claim) |
+
+### Returns
+
+`Promise<PhonelinkPayload>`
+
+Resolves with the verified payload on success.
+
+### Throws
+
+| Error | Cause |
+| --- | --- |
+| `JWSSignatureVerificationFailed` | JWT signature does not match the JWKS keys |
+| `JWTClaimValidationFailed` | Issuer is not `https://phone.link`, or audience doesn't match `expectedAud` |
+| `JWTExpired` | Token has expired |
+| `Error("Nonce mismatch")` | `payload.nonce` does not equal `expectedNonce` |
+| `Error("Phone number not verified")` | `payload.verified` is not `true` |
+
+### Validation steps
+
+1. Fetches the public keys from `https://phone.link/.well-known/jwks.json` (cached automatically)
+2. Verifies the JWT signature
+3. Checks the `iss` claim equals `https://phone.link`
+4. Checks the `aud` claim equals `expectedAud`
+5. Checks the token has not expired
+6. Checks `payload.nonce` equals `expectedNonce`
+7. Checks `payload.verified` is `true`
+
+---
+
+## `PhonelinkPayload`
+
+TypeScript interface for the decoded JWT payload returned by `verifyPhonelinkToken`.
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `phone_e164` | `string` | Verified phone number in E.164 format (e.g. `"+14155551234"`) |
+| `verified` | `boolean` | Whether the phone number was successfully verified |
+| `method` | `string` | Verification method used (e.g. SMS, voice call) |
+| `provider` | `string` | Verification provider that handled the verification |
+| `nonce` | `string` | Cryptographic nonce for replay protection |
+| `sub` | `string` | Subject identifier for the verification session |
+| `iss` | `string` | Token issuer (always `"https://phone.link"`) |
+| `aud` | `string` | Audience (your Phonelink client ID) |
+| `iat` | `number` | Unix timestamp (seconds) when the token was issued |
+| `exp` | `number` | Unix timestamp (seconds) when the token expires |
+| `jti` | `string` | Unique identifier for this specific token |
+
+```ts
+import type { PhonelinkPayload } from "phonelink/server";
+```

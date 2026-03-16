@@ -1,0 +1,149 @@
+---
+title: Vanilla JavaScript
+description: Integrate Phonelink phone verification into any web app using plain JavaScript or TypeScript.
+---
+
+## Overview
+
+The web client uses a **redirect-based flow**. Your app redirects the user to Phonelink, they verify their phone number, and Phonelink redirects back with a signed JWT token.
+
+The flow requires two pages in your app:
+
+1. **Start page** — where the user clicks "Verify Phone" and gets redirected
+2. **Callback page** — where your app receives the token after verification
+
+## Install
+
+```bash
+npm install phonelink
+```
+
+## 1. Start the verification flow
+
+On the page where users initiate verification, call `phonelink.startAuth`:
+
+```ts
+import { phonelink } from "phonelink/web";
+
+const verifyButton = document.getElementById("verify-btn");
+
+verifyButton.addEventListener("click", () => {
+  phonelink.startAuth("your-client-id", "https://myapp.com/auth/callback");
+});
+```
+
+This does three things:
+1. Generates a cryptographic nonce (32 random bytes)
+2. Stores the nonce in `sessionStorage` under the key `phonelink_nonce`
+3. Redirects the browser to `https://phone.link/auth` with your client ID, callback URL, and nonce as query parameters
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `clientId` | `string` | Your Phonelink client ID |
+| `callbackUrl` | `string` | URL to redirect back to after verification |
+
+## 2. Handle the callback
+
+On your callback page, call `phonelink.handleCallback` to retrieve the token and nonce:
+
+```ts
+import { phonelink } from "phonelink/web";
+
+const result = phonelink.handleCallback();
+
+if (result) {
+  // Send the token and nonce to your server for verification
+  const response = await fetch("/api/verify-phone", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: result.token,
+      nonce: result.nonce,
+    }),
+  });
+
+  if (response.ok) {
+    const { phone } = await response.json();
+    console.log("Verified phone number:", phone);
+  }
+} else {
+  console.log("No verification result found");
+}
+```
+
+`handleCallback` does the following:
+1. Reads the `token` query parameter from the current URL
+2. Retrieves the nonce from `sessionStorage`
+3. Removes the nonce from `sessionStorage` (to prevent reuse)
+4. Returns `{ token, nonce }` or `null` if either is missing
+
+## 3. Verify on the server
+
+Send the token and nonce to your backend and verify using `phonelink/server`. See the [Server Verification](/docs/server) guide for the full walkthrough.
+
+```ts
+import { verifyPhonelinkToken } from "phonelink/server";
+
+const payload = await verifyPhonelinkToken(token, nonce, "your-client-id");
+console.log(payload.phone_e164); // "+14155551234"
+```
+
+## Complete example
+
+Here's a complete HTML example with both pages:
+
+**verify.html** — the start page:
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+  <button id="verify-btn">Verify Phone Number</button>
+  <script type="module">
+    import { phonelink } from "phonelink/web";
+
+    document.getElementById("verify-btn").addEventListener("click", () => {
+      phonelink.startAuth("your-client-id", "https://myapp.com/callback.html");
+    });
+  </script>
+</body>
+</html>
+```
+
+**callback.html** — the callback page:
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+  <p id="status">Verifying...</p>
+  <script type="module">
+    import { phonelink } from "phonelink/web";
+
+    const result = phonelink.handleCallback();
+
+    if (result) {
+      const response = await fetch("/api/verify-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: result.token, nonce: result.nonce }),
+      });
+
+      if (response.ok) {
+        document.getElementById("status").textContent = "Phone verified!";
+      } else {
+        document.getElementById("status").textContent = "Verification failed.";
+      }
+    } else {
+      document.getElementById("status").textContent = "No token found.";
+    }
+  </script>
+</body>
+</html>
+```
+
+## Important notes
+
+- **Same browser session required** — The nonce is stored in `sessionStorage`, which is scoped to the browser tab. The user must complete verification in the same tab they started from.
+- **Single-use nonce** — `handleCallback` removes the nonce from storage after reading it. Calling it twice will return `null` the second time.
+- **Always verify server-side** — The web client never verifies the JWT. Always send the raw token to your server for cryptographic validation.

@@ -1,0 +1,113 @@
+---
+title: Server Verification
+description: Verify Phonelink JWT tokens on your server to get the authenticated phone number.
+---
+
+## Overview
+
+Every Phonelink integration — whether web, React, or Expo — requires **server-side token verification**. The client never verifies tokens; it passes the raw JWT and nonce to your server, where `verifyPhonelinkToken` performs cryptographic validation.
+
+## Install
+
+```bash
+npm install phonelink
+```
+
+The server module uses the [`jose`](https://github.com/panva/jose) library for JWT verification, which is included as a dependency.
+
+## Basic usage
+
+```ts
+import { verifyPhonelinkToken } from "phonelink/server";
+
+const payload = await verifyPhonelinkToken(token, nonce, "your-client-id");
+
+console.log(payload.phone_e164); // "+14155551234"
+console.log(payload.verified);   // true
+```
+
+## What `verifyPhonelinkToken` checks
+
+The function performs five validation steps in order. If any step fails, it throws an error.
+
+| Step | Check | Error |
+| --- | --- | --- |
+| 1 | JWT signature via JWKS | `JWSSignatureVerificationFailed` |
+| 2 | Token issuer is `https://phone.link` | `JWTClaimValidationFailed` |
+| 3 | Audience matches your client ID | `JWTClaimValidationFailed` |
+| 4 | Nonce matches the expected value | `"Nonce mismatch"` |
+| 5 | `verified` claim is `true` | `"Phone number not verified"` |
+
+Token expiry is also enforced automatically by the JWT library.
+
+## Parameters
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `token` | `string` | The JWT returned from the client verification flow |
+| `expectedNonce` | `string` | The nonce returned alongside the token from the client |
+| `expectedAud` | `string` | Your Phonelink client ID (must match the token's `aud` claim) |
+
+## Return value
+
+On success, returns a `PhonelinkPayload` object:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `phone_e164` | `string` | Verified phone number in E.164 format (e.g. `"+14155551234"`) |
+| `verified` | `boolean` | Always `true` (fails if not) |
+| `method` | `string` | Verification method used |
+| `provider` | `string` | Verification provider |
+| `nonce` | `string` | The nonce used for this verification |
+| `sub` | `string` | Subject identifier |
+| `iss` | `string` | Issuer (`"https://phone.link"`) |
+| `aud` | `string` | Audience (your client ID) |
+| `iat` | `number` | Issued-at timestamp (unix seconds) |
+| `exp` | `number` | Expiry timestamp (unix seconds) |
+| `jti` | `string` | Unique token identifier |
+
+## Error handling
+
+Always wrap `verifyPhonelinkToken` in a try/catch. The function throws for any validation failure:
+
+```ts
+import { verifyPhonelinkToken } from "phonelink/server";
+
+try {
+  const payload = await verifyPhonelinkToken(token, nonce, "your-client-id");
+  // Success — use payload.phone_e164
+} catch (error) {
+  if (error instanceof Error) {
+    switch (error.message) {
+      case "Nonce mismatch":
+        // The nonce from the client doesn't match the token's nonce.
+        // This could indicate a replay attack or a bug in nonce handling.
+        break;
+      case "Phone number not verified":
+        // The token was issued but phone verification wasn't completed.
+        break;
+      default:
+        // JWT validation failed (invalid signature, expired, wrong issuer/audience).
+        break;
+    }
+  }
+}
+```
+
+## JWKS caching
+
+The JWKS (JSON Web Key Set) is fetched from `https://phone.link/.well-known/jwks.json` and cached automatically by the `jose` library. You don't need to manage key rotation or caching yourself.
+
+## Nonce lifecycle
+
+The nonce prevents replay attacks. Here's its lifecycle:
+
+1. **Generated** — The client creates a random 32-byte hex string
+2. **Stored** — The client stores it (in `sessionStorage` for web, or in memory for Expo)
+3. **Sent to Phonelink** — Included in the auth URL as a query parameter
+4. **Embedded in JWT** — Phonelink includes the nonce in the signed token
+5. **Returned to client** — The client retrieves the stored nonce
+6. **Validated on server** — Your server checks that the token's nonce matches the client's nonce
+7. **Discarded** — The nonce is never reused
+
+Always forward the nonce from the client and validate it on the server. Never skip nonce validation.
