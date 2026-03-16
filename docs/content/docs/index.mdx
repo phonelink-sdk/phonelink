@@ -11,26 +11,17 @@ Phonelink is a phone number verification SDK for web and mobile apps. It handles
 
 ## How it works
 
-```
-Your App                    Phonelink                   Your Server
-   │                           │                            │
-   │  1. startAuth()           │                            │
-   │ ─────────────────────────>│                            │
-   │   (redirect with nonce)   │                            │
-   │                           │                            │
-   │  2. User verifies phone   │                            │
-   │                           │                            │
-   │  3. Redirect back         │                            │
-   │ <─────────────────────────│                            │
-   │   (token in URL)          │                            │
-   │                           │                            │
-   │  4. Send token + nonce    │                            │
-   │ ──────────────────────────│───────────────────────────>│
-   │                           │                            │
-   │                           │  5. verifyPhonelinkToken() │
-   │                           │                            │
-   │  6. Verified phone_e164   │                            │
-   │ <─────────────────────────│────────────────────────────│
+```mermaid
+sequenceDiagram
+    participant App as Your App
+    participant PL as Phonelink
+    participant Server as Your Server
+    App->>PL: 1. startAuth() redirect with nonce
+    PL-->>PL: 2. User verifies phone
+    PL->>App: 3. Redirect back with token
+    App->>Server: 4. Send token + nonce
+    Server-->>Server: 5. verifyPhonelinkToken()
+    Server->>App: 6. Verified phone_e164
 ```
 
 1. Your app calls `startAuth()` which generates a cryptographic nonce and redirects to Phonelink
@@ -49,12 +40,12 @@ npm install phonelink
 ## Choose your platform
 
 <Cards>
-  <Card title="Web (Vanilla JS)" href="/docs/web/vanilla" description="Redirect-based flow for any web app" />
-  <Card title="React" href="/docs/web/react" description="usePhonelink hook for React apps" />
-  <Card title="Next.js" href="/docs/web/nextjs" description="Full-stack recipe with App Router" />
-  <Card title="Expo" href="/docs/expo" description="In-app browser flow for React Native" />
+  <Card title="Web (Vanilla JS)" href="/web/vanilla" description="Redirect-based flow for any web app" />
+  <Card title="React" href="/web/react" description="usePhonelink hook for React apps" />
+  <Card title="Next.js" href="/web/nextjs" description="Full-stack recipe with App Router" />
+  <Card title="Expo" href="/expo" description="In-app browser flow for React Native" />
 </Cards>
 
 ## Server verification
 
-Every integration requires server-side token verification. See the [Server Verification](/docs/server) guide after setting up your client.
+Every integration requires server-side token verification. See the [Server Verification](/server) guide after setting up your client.

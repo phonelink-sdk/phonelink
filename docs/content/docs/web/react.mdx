@@ -44,7 +44,7 @@ function VerifyPhone() {
 
 ## How it works
 
-The hook uses the same `phonelink.startAuth` and `phonelink.handleCallback` methods as the [vanilla JS integration](/docs/web/vanilla), wrapped in React state management.
+The hook uses the same `phonelink.startAuth` and `phonelink.handleCallback` methods as the [vanilla JS integration](/web/vanilla), wrapped in React state management.
 
 **On mount**, the hook calls `phonelink.handleCallback()` to check if the current page is a callback page (i.e. the URL contains a `token` query parameter). If a token is found:
 - `result` is set to `{ token, nonce }`
@@ -115,4 +115,4 @@ This makes it easy to use a single component for the entire flow without any rou
 
 ## Server verification
 
-After receiving the result on your frontend, always verify the token on your server. See the [Server Verification](/docs/server) guide.
+After receiving the result on your frontend, always verify the token on your server. See the [Server Verification](/server) guide.
