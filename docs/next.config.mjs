@@ -7,9 +7,6 @@ const config = {
   output: 'export',
   trailingSlash: true,
   images: { unoptimized: true },
-  turbopack: {
-    root: '..',
-  },
 };
 
 export default withMDX(config);
