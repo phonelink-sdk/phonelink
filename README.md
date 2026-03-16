@@ -40,14 +40,14 @@ console.log(payload.phone_e164); // "+14155551234"
 
 **[Read the full documentation at docs.phone.link](https://docs.phone.link)**
 
-- [Getting Started](https://docs.phone.link/docs) — overview and installation
-- [Web (Vanilla JS)](https://docs.phone.link/docs/web/vanilla) — redirect-based flow for any web app
-- [React](https://docs.phone.link/docs/web/react) — `usePhonelink` hook
-- [Next.js](https://docs.phone.link/docs/web/nextjs) — full-stack App Router recipe
-- [Expo / React Native](https://docs.phone.link/docs/expo) — in-app browser flow
-- [Server Verification](https://docs.phone.link/docs/server) — JWT token validation
-- [API Reference](https://docs.phone.link/docs/api-reference/web) — full API docs
-- [Security](https://docs.phone.link/docs/security) — security model and best practices
+- [Getting Started](https://docs.phone.link) — overview and installation
+- [Web (Vanilla JS)](https://docs.phone.link/web/vanilla) — redirect-based flow for any web app
+- [React](https://docs.phone.link/web/react) — `usePhonelink` hook
+- [Next.js](https://docs.phone.link/web/nextjs) — full-stack App Router recipe
+- [Expo / React Native](https://docs.phone.link/expo) — in-app browser flow
+- [Server Verification](https://docs.phone.link/server) — JWT token validation
+- [API Reference](https://docs.phone.link/api-reference/web) — full API docs
+- [Security](https://docs.phone.link/security) — security model and best practices
 
 ## License
 

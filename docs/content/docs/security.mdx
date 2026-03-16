@@ -31,23 +31,20 @@ The nonce prevents **replay attacks** — an attacker intercepting a valid token
 
 ### Nonce lifecycle
 
-```
-Client                          Phonelink                       Server
-  │                                │                              │
-  │  1. Generate nonce             │                              │
-  │  2. Store in sessionStorage    │                              │
-  │  3. Redirect with nonce ──────>│                              │
-  │                                │                              │
-  │                                │  4. Include nonce in JWT     │
-  │                                │                              │
-  │  5. Receive token <────────────│                              │
-  │  6. Retrieve nonce from store  │                              │
-  │  7. Delete nonce from store    │                              │
-  │                                │                              │
-  │  8. Send token + nonce ────────│─────────────────────────────>│
-  │                                │                              │
-  │                                │  9. Verify token.nonce       │
-  │                                │     matches expected nonce   │
+```mermaid
+sequenceDiagram
+    participant Client
+    participant PL as Phonelink
+    participant Server
+    Client->>Client: 1. Generate nonce
+    Client->>Client: 2. Store in sessionStorage
+    Client->>PL: 3. Redirect with nonce
+    PL->>PL: 4. Include nonce in JWT
+    PL->>Client: 5. Redirect back with token
+    Client->>Client: 6. Retrieve nonce from store
+    Client->>Client: 7. Delete nonce from store
+    Client->>Server: 8. Send token + nonce
+    Server->>Server: 9. Verify nonce matches
 ```
 
 **Why this works:**
