@@ -1,41 +1,16 @@
 ---
-title: Getting Started
+title: What is Phonelink?
 description: Phone number verification for web and mobile apps.
 ---
 
 import { Cards, Card } from 'fumadocs-ui/components/card';
 
-## What is Phonelink?
+Phonelink is a phone number verification SDK for web and mobile apps.
 
-Phonelink is a phone number verification SDK for web and mobile apps. It handles the entire verification flow — your app opens a secure browser session, the user verifies their phone number, and your server validates the resulting signed JWT.
-
-## How it works
-
-```mermaid
-sequenceDiagram
-    participant App as Your App
-    participant PL as Phonelink
-    participant Server as Your Server
-    App->>PL: 1. verify() redirect with nonce
-    PL-->>PL: 2. User verifies phone
-    PL->>App: 3. Redirect back with token
-    App->>Server: 4. Send token + nonce
-    Server-->>Server: 5. validate()
-    Server->>App: 6. Verified phone_e164
-```
-
-1. Your app calls `verify()` which generates a cryptographic nonce and redirects to Phonelink
-2. The user completes phone number verification on the Phonelink page
-3. Phonelink redirects back to your app with a signed JWT token
-4. Your app sends the token and nonce to your server
-5. Your server calls `validate()` to validate the JWT signature, issuer, audience, nonce, and verification status
-6. On success, your server receives the verified phone number in E.164 format
-
-## Install
-
-```bash
-npm install phonelink
-```
+- **Drop-in integration** — a few lines of code to add phone verification to any app
+- **Cross-platform** — works on web, React, React Native (Expo), and iOS
+- **Secure by default** — cryptographic nonce + signed JWT, validated server-side
+- **E.164 output** — get verified phone numbers in a standard, portable format
 
 ## Choose your platform
 
@@ -44,8 +19,5 @@ npm install phonelink
   <Card title="React" href="/web/react" description="usePhonelink hook for React apps" />
   <Card title="Expo" href="/expo" description="In-app browser flow for React Native" />
   <Card title="iOS" href="/ios" description="Native Swift SDK for iOS apps" />
+  <Card title="Server" href="/validate" description="Server side validation" />
 </Cards>
-
-## Server verification
-
-Every integration requires server-side token verification. See the [Server Verification](/validate) guide after setting up your client.
