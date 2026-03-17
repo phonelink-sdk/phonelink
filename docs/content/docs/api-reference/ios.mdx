@@ -1,0 +1,99 @@
+---
+title: PhoneLink (iOS)
+description: API reference for the PhoneLink Swift SDK.
+---
+
+## PhoneLink
+
+The main interface for configuring and starting phone verification.
+
+### `PhoneLink.configure(_:)`
+
+Set your client ID. Call once at app launch before any verification calls.
+
+```swift
+PhoneLink.configure("your-client-id")
+```
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `clientID` | `String` | Your Phonelink client ID |
+
+---
+
+### `PhoneLink.verify(completion:)`
+
+Start the phone verification flow. Opens a secure `ASWebAuthenticationSession` where the user enters their phone number and verifies it.
+
+```swift
+PhoneLink.verify { result in
+    // handle result
+}
+```
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `completion` | `(PhoneLinkResult) -> Void` | Called when verification completes or fails |
+
+---
+
+### `PhoneLink.verify(phoneNumber:completion:)`
+
+Start verification with a prefilled phone number. The user skips the number entry screen and goes directly to the verification code screen.
+
+```swift
+PhoneLink.verify(phoneNumber: "+14155551234") { result in
+    // handle result
+}
+```
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `phoneNumber` | `String` | Phone number to prefill in E.164 format |
+| `completion` | `(PhoneLinkResult) -> Void` | Called when verification completes or fails |
+
+---
+
+## PhoneLinkResult
+
+The result returned in the verification completion handler.
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `phoneNumber` | `String?` | The verified phone number in E.164 format |
+| `token` | `String?` | Signed JWT for server-side validation |
+| `error` | `PhoneLinkError?` | The error, or `nil` on success |
+
+On success, `phoneNumber` and `token` are populated and `error` is `nil`. On failure, `error` is set and the other properties may be `nil`.
+
+---
+
+## PhoneLinkError
+
+An enum describing what went wrong during verification.
+
+| Case | Description |
+| --- | --- |
+| `.notConfigured` | `PhoneLink.configure(_:)` was not called before verifying |
+| `.cancelled` | User dismissed the verification screen |
+| `.missingToken` | Verification completed but the response did not contain a token |
+| `.sessionFailed(Error)` | The underlying `ASWebAuthenticationSession` failed. The associated value contains the original error. |
+
+### Example
+
+```swift
+PhoneLink.verify { result in
+    if let error = result.error {
+        switch error {
+        case .notConfigured:
+            print("Not configured")
+        case .cancelled:
+            print("Cancelled")
+        case .missingToken:
+            print("Missing token")
+        case .sessionFailed(let underlying):
+            print("Session failed: \(underlying)")
+        }
+    }
+}
+```

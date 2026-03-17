@@ -1,4 +1,4 @@
 {
   "title": "API Reference",
-  "pages": ["web", "validate", "expo"]
+  "pages": ["web", "validate", "expo", "ios"]
 }
