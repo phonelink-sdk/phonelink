@@ -15,7 +15,7 @@ Every verification result is a JWT signed by Phonelink's private keys. Your serv
 https://phone.link/.well-known/jwks.json
 ```
 
-The `verifyPhonelinkToken` function handles this automatically using the [`jose`](https://github.com/panva/jose) library. It:
+The `validate` function handles this automatically using the [`jose`](https://github.com/panva/jose) library. It:
 
 1. Fetches and caches the public keys from the JWKS endpoint
 2. Verifies the JWT signature against the cached keys
@@ -55,7 +55,7 @@ sequenceDiagram
 
 ### Single-use guarantee
 
-On the web, the nonce is removed from `sessionStorage` immediately after `handleCallback()` reads it. This means:
+On the web, the nonce is removed from `sessionStorage` immediately after `getResult()` reads it. This means:
 - Refreshing the callback page returns `null` (the nonce is gone)
 - Each verification flow uses a unique nonce
 - Old tokens cannot be replayed even if intercepted
@@ -76,11 +76,11 @@ Tokens have a limited lifetime enforced via the `exp` claim. The `jose` library 
 
 ### Always verify server-side
 
-Never verify tokens in client-side code. The web client (`phonelink/web`) intentionally does not verify JWTs — it only passes the raw token to your server. All cryptographic validation must happen on your server using `phonelink/server`.
+Never verify tokens in client-side code. The web client (`phonelink/web`) intentionally does not verify JWTs — it only passes the raw token to your server. All cryptographic validation must happen on your server using `phonelink/validate`.
 
 ### Always validate the nonce
 
-Always forward the nonce from the client to your server alongside the token. Never skip nonce validation, even in development. The `verifyPhonelinkToken` function requires the nonce as a parameter and will throw if it doesn't match.
+Always forward the nonce from the client to your server alongside the token. Never skip nonce validation, even in development. The `validate` function requires the nonce as a parameter and will throw if it doesn't match.
 
 ### Use HTTPS
 
@@ -92,4 +92,4 @@ Phonelink tokens are short-lived and single-purpose. Extract the phone number (`
 
 ### Validate before trusting
 
-Don't extract claims from the JWT without verification. Always call `verifyPhonelinkToken` first. Only use properties from the returned `PhonelinkPayload` object.
+Don't extract claims from the JWT without verification. Always call `validate` first. Only use properties from the returned `PhonelinkPayload` object.

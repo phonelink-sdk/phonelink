@@ -9,7 +9,7 @@ const JWKS = createRemoteJWKSet(
 );
 
 /**
- * Verifies a Phonelink JWT token against the JWKS endpoint.
+ * Validates a Phonelink JWT token against the JWKS endpoint.
  *
  * Performs the following checks:
  * - Validates the JWT signature using the Phonelink JWKS endpoint
@@ -28,13 +28,13 @@ const JWKS = createRemoteJWKSet(
  *
  * @example
  * ```ts
- * import { verifyPhonelinkToken } from "phonelink/server";
+ * import { validate } from "phonelink/validate";
  *
- * const payload = await verifyPhonelinkToken(token, nonce, "your-client-id");
+ * const payload = await validate(token, nonce, "your-client-id");
  * console.log(payload.phone_e164); // "+14155551234"
  * ```
  */
-export async function verifyPhonelinkToken(
+export async function validate(
   token: string,
   expectedNonce: string,
   expectedAud: string,

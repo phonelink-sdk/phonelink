@@ -20,7 +20,7 @@ npm install phonelink
 
 ## 1. Start the verification flow
 
-On the page where users initiate verification, call `phonelink.startAuth`:
+On the page where users initiate verification, call `phonelink.verify`:
 
 ```ts
 import { phonelink } from "phonelink/web";
@@ -28,7 +28,7 @@ import { phonelink } from "phonelink/web";
 const verifyButton = document.getElementById("verify-btn");
 
 verifyButton.addEventListener("click", () => {
-  phonelink.startAuth("your-client-id", "https://myapp.com/auth/callback");
+  phonelink.verify("your-client-id", "https://myapp.com/auth/callback");
 });
 ```
 
@@ -44,12 +44,12 @@ This does three things:
 
 ## 2. Handle the callback
 
-On your callback page, call `phonelink.handleCallback` to retrieve the token and nonce:
+On your callback page, call `phonelink.getResult` to retrieve the token and nonce:
 
 ```ts
 import { phonelink } from "phonelink/web";
 
-const result = phonelink.handleCallback();
+const result = phonelink.getResult();
 
 if (result) {
   // Send the token and nonce to your server for verification
@@ -71,7 +71,7 @@ if (result) {
 }
 ```
 
-`handleCallback` does the following:
+`getResult` does the following:
 1. Reads the `token` query parameter from the current URL
 2. Retrieves the nonce from `sessionStorage`
 3. Removes the nonce from `sessionStorage` (to prevent reuse)
@@ -79,12 +79,12 @@ if (result) {
 
 ## 3. Verify on the server
 
-Send the token and nonce to your backend and verify using `phonelink/server`. See the [Server Verification](/server) guide for the full walkthrough.
+Send the token and nonce to your backend and verify using `phonelink/validate`. See the [Server Verification](/validate) guide for the full walkthrough.
 
 ```ts
-import { verifyPhonelinkToken } from "phonelink/server";
+import { validate } from "phonelink/validate";
 
-const payload = await verifyPhonelinkToken(token, nonce, "your-client-id");
+const payload = await validate(token, nonce, "your-client-id");
 console.log(payload.phone_e164); // "+14155551234"
 ```
 
@@ -103,7 +103,7 @@ Here's a complete HTML example with both pages:
     import { phonelink } from "phonelink/web";
 
     document.getElementById("verify-btn").addEventListener("click", () => {
-      phonelink.startAuth("your-client-id", "https://myapp.com/callback.html");
+      phonelink.verify("your-client-id", "https://myapp.com/callback.html");
     });
   </script>
 </body>
@@ -120,7 +120,7 @@ Here's a complete HTML example with both pages:
   <script type="module">
     import { phonelink } from "phonelink/web";
 
-    const result = phonelink.handleCallback();
+    const result = phonelink.getResult();
 
     if (result) {
       const response = await fetch("/api/verify-phone", {
@@ -145,5 +145,5 @@ Here's a complete HTML example with both pages:
 ## Important notes
 
 - **Same browser session required** — The nonce is stored in `sessionStorage`, which is scoped to the browser tab. The user must complete verification in the same tab they started from.
-- **Single-use nonce** — `handleCallback` removes the nonce from storage after reading it. Calling it twice will return `null` the second time.
+- **Single-use nonce** — `getResult` removes the nonce from storage after reading it. Calling it twice will return `null` the second time.
 - **Always verify server-side** — The web client never verifies the JWT. Always send the raw token to your server for cryptographic validation.

@@ -3,7 +3,7 @@ import { defineConfig } from "tsup";
 export default defineConfig({
   entry: {
     "expo/index": "src/expo/index.ts",
-    "server/index": "src/server/index.ts",
+    "validate/index": "src/validate/index.ts",
     "web/index": "src/web/index.ts",
   },
   format: ["cjs", "esm"],

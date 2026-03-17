@@ -7,6 +7,7 @@ import {
 } from 'fumadocs-ui/layouts/docs/page';
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
+import { CopyButtons } from '@/components/copy-buttons';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import type { Metadata } from 'next';
 
@@ -18,11 +19,18 @@ export default async function Page(props: {
   if (!page) notFound();
 
   const MDX = page.data.body;
+  const markdown = await page.data.getText('processed');
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
+      <CopyButtons
+        markdown={markdown}
+        title={page.data.title}
+        description={page.data.description}
+        url={page.url}
+      />
       <DocsBody>
         <MDX
           components={getMDXComponents({

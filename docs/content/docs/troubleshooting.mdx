@@ -12,12 +12,12 @@ description: Common issues, error messages, and debugging tips for Phonelink int
 **Possible reasons:**
 - The user opened the verification flow in one tab and completed it in another
 - The user's browser cleared `sessionStorage` between starting and completing the flow
-- The nonce was already consumed by a previous `handleCallback()` call (e.g. the page was refreshed)
+- The nonce was already consumed by a previous `getResult()` call (e.g. the page was refreshed)
 - On Expo, the app was backgrounded and the in-memory nonce was lost
 
 **Fix:**
 - Ensure the user completes verification in the same browser tab they started from
-- Don't call `handleCallback()` more than once per flow
+- Don't call `getResult()` more than once per flow
 - On Expo, ensure the app stays in the foreground during verification
 
 ### "Phone number not verified"
@@ -55,21 +55,21 @@ description: Common issues, error messages, and debugging tips for Phonelink int
 - The `expectedAud` parameter doesn't match your actual Phonelink client ID
 - The token was issued for a different client ID
 
-**Fix:** Verify that the client ID you pass to `verifyPhonelinkToken` exactly matches the one used in `startAuth` or `phonelink.verify` on the client.
+**Fix:** Verify that the client ID you pass to `validate` exactly matches the one used in `verify` or `phonelink.verify` on the client.
 
-### `handleCallback()` returns `null`
+### `getResult()` returns `null`
 
 **Cause:** No `token` parameter found in the URL, or no nonce found in `sessionStorage`.
 
 **Possible reasons:**
 - The page is not actually a callback page (no `?token=...` in the URL)
-- The nonce was already consumed by a previous `handleCallback()` call
+- The nonce was already consumed by a previous `getResult()` call
 - `sessionStorage` was cleared (e.g. the user closed and reopened the tab)
 
 **Fix:**
 - Ensure Phonelink is configured to redirect to the correct callback URL
-- Only call `handleCallback()` once per page load
-- Make sure the callback URL in `startAuth` matches the page where `handleCallback` runs
+- Only call `getResult()` once per page load
+- Make sure the callback URL in `verify` matches the page where `getResult` runs
 
 ### Expo: `phonelink.verify()` returns `null`
 
@@ -113,8 +113,8 @@ If this fails, check your server's network configuration, firewall rules, and DN
 ### Check client ID consistency
 
 A common source of errors is using different client IDs on the client and server. Ensure:
-- `startAuth("client-id", ...)` on the client
-- `verifyPhonelinkToken(token, nonce, "client-id")` on the server
+- `verify("client-id", ...)` on the client
+- `validate(token, nonce, "client-id")` on the server
 
 Both must use the exact same client ID string.
 
@@ -130,7 +130,7 @@ Tokens have a short expiry set by Phonelink. Always process them promptly after 
 
 ### Can I use the same token twice?
 
-While the token itself doesn't become invalid after one use, the nonce is consumed on the client side after a single `handleCallback()` call. For server-side deduplication, you can track the `jti` (JWT ID) claim to prevent processing the same token twice.
+While the token itself doesn't become invalid after one use, the nonce is consumed on the client side after a single `getResult()` call. For server-side deduplication, you can track the `jti` (JWT ID) claim to prevent processing the same token twice.
 
 ### Does Phonelink support phone numbers from all countries?
 

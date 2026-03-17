@@ -5,7 +5,7 @@ description: Verify Phonelink JWT tokens on your server to get the authenticated
 
 ## Overview
 
-Every Phonelink integration — whether web, React, or Expo — requires **server-side token verification**. The client never verifies tokens; it passes the raw JWT and nonce to your server, where `verifyPhonelinkToken` performs cryptographic validation.
+Every Phonelink integration — whether web, React, or Expo — requires **server-side token verification**. The client never verifies tokens; it passes the raw JWT and nonce to your server, where `validate` performs cryptographic validation.
 
 ## Install
 
@@ -18,15 +18,15 @@ The server module uses the [`jose`](https://github.com/panva/jose) library for J
 ## Basic usage
 
 ```ts
-import { verifyPhonelinkToken } from "phonelink/server";
+import { validate } from "phonelink/validate";
 
-const payload = await verifyPhonelinkToken(token, nonce, "your-client-id");
+const payload = await validate(token, nonce, "your-client-id");
 
 console.log(payload.phone_e164); // "+14155551234"
 console.log(payload.verified);   // true
 ```
 
-## What `verifyPhonelinkToken` checks
+## What `validate` checks
 
 The function performs five validation steps in order. If any step fails, it throws an error.
 
@@ -68,13 +68,13 @@ On success, returns a `PhonelinkPayload` object:
 
 ## Error handling
 
-Always wrap `verifyPhonelinkToken` in a try/catch. The function throws for any validation failure:
+Always wrap `validate` in a try/catch. The function throws for any validation failure:
 
 ```ts
-import { verifyPhonelinkToken } from "phonelink/server";
+import { validate } from "phonelink/validate";
 
 try {
-  const payload = await verifyPhonelinkToken(token, nonce, "your-client-id");
+  const payload = await validate(token, nonce, "your-client-id");
   // Success — use payload.phone_e164
 } catch (error) {
   if (error instanceof Error) {

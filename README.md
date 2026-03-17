@@ -17,10 +17,10 @@ npm install phonelink
 import { phonelink } from "phonelink/web";
 
 // Start the verification flow
-phonelink.startAuth("your-client-id", "https://myapp.com/callback");
+phonelink.verify("your-client-id", "https://myapp.com/callback");
 
 // On the callback page, get the result
-const result = phonelink.handleCallback();
+const result = phonelink.getResult();
 
 // Send to your server for verification
 await fetch("/api/verify", {
@@ -30,9 +30,9 @@ await fetch("/api/verify", {
 ```
 
 ```ts
-import { verifyPhonelinkToken } from "phonelink/server";
+import { validate } from "phonelink/validate";
 
-const payload = await verifyPhonelinkToken(token, nonce, "your-client-id");
+const payload = await validate(token, nonce, "your-client-id");
 console.log(payload.phone_e164); // "+14155551234"
 ```
 
@@ -45,7 +45,7 @@ console.log(payload.phone_e164); // "+14155551234"
 - [React](https://docs.phone.link/web/react) — `usePhonelink` hook
 - [Next.js](https://docs.phone.link/web/nextjs) — full-stack App Router recipe
 - [Expo / React Native](https://docs.phone.link/expo) — in-app browser flow
-- [Server Verification](https://docs.phone.link/server) — JWT token validation
+- [Server Verification](https://docs.phone.link/validate) — JWT token validation
 - [API Reference](https://docs.phone.link/api-reference/web) — full API docs
 - [Security](https://docs.phone.link/security) — security model and best practices
 
