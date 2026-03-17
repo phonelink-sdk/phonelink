@@ -9,13 +9,13 @@ The `phonelink/web` entry point exports the following:
 
 | Export | Type | Description |
 | --- | --- | --- |
-| `phonelink` | `object` | Web client with `startAuth` and `handleCallback` methods |
+| `phonelink` | `object` | Web client with `verify` and `getResult` methods |
 | `usePhonelink` | `function` | React hook for the full verification flow |
 | `PhonelinkPayload` | `type` | TypeScript type for the decoded JWT payload |
 
 ---
 
-## `phonelink.startAuth(clientId, callbackUrl)`
+## `phonelink.verify(clientId, callbackUrl)`
 
 Starts the phone verification flow by redirecting to Phonelink.
 
@@ -30,7 +30,7 @@ Generates a 32-byte cryptographic nonce, stores it in `sessionStorage` under the
 
 ---
 
-## `phonelink.handleCallback()`
+## `phonelink.getResult()`
 
 Reads the verification result on the callback page.
 
@@ -57,17 +57,17 @@ React hook that manages the full verification flow.
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `startAuth` | `() => void` | Initiates the verification flow |
+| `verify` | `() => void` | Initiates the verification flow |
 | `result` | `{ token: string; nonce: string } \| null` | Verification result, or `null` |
 | `isCallback` | `boolean` | Whether the current page is the callback page |
 
-On mount, the hook calls `handleCallback()` to check for a token in the URL. If found, `result` is populated and `isCallback` is `true`. The `startAuth` function is memoized with `useCallback` and only changes when `clientId` or `callbackUrl` change.
+On mount, the hook calls `getResult()` to check for a token in the URL. If found, `result` is populated and `isCallback` is `true`. The `verify` function is memoized with `useCallback` and only changes when `clientId` or `callbackUrl` change.
 
 ---
 
 ## `PhonelinkPayload`
 
-TypeScript interface for the decoded JWT payload. See [Server Verification](/server) for the full property list.
+TypeScript interface for the decoded JWT payload. See [Server API Reference](/api-reference/validate#phonelinkpayload) for the full property list.
 
 ```ts
 import type { PhonelinkPayload } from "phonelink/web";

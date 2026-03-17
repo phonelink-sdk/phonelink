@@ -15,10 +15,10 @@
       "import": "./dist/expo/index.mjs",
       "require": "./dist/expo/index.js"
     },
-    "./server": {
-      "types": "./dist/server/index.d.ts",
-      "import": "./dist/server/index.mjs",
-      "require": "./dist/server/index.js"
+    "./validate": {
+      "types": "./dist/validate/index.d.ts",
+      "import": "./dist/validate/index.mjs",
+      "require": "./dist/validate/index.js"
     },
     "./web": {
       "types": "./dist/web/index.d.ts",
@@ -31,8 +31,8 @@
       "expo": [
         "dist/expo/index.d.ts"
       ],
-      "server": [
-        "dist/server/index.d.ts"
+      "validate": [
+        "dist/validate/index.d.ts"
       ],
       "web": [
         "dist/web/index.d.ts"

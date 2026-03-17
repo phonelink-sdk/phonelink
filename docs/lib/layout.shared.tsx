@@ -14,12 +14,5 @@ export function baseOptions(): BaseLayoutProps {
         />
       ),
     },
-    links: [
-      {
-        text: 'Documentation',
-        url: '/',
-        active: 'nested-url',
-      },
-    ],
   };
 }

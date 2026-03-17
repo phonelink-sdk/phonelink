@@ -16,19 +16,19 @@ sequenceDiagram
     participant App as Your App
     participant PL as Phonelink
     participant Server as Your Server
-    App->>PL: 1. startAuth() redirect with nonce
+    App->>PL: 1. verify() redirect with nonce
     PL-->>PL: 2. User verifies phone
     PL->>App: 3. Redirect back with token
     App->>Server: 4. Send token + nonce
-    Server-->>Server: 5. verifyPhonelinkToken()
+    Server-->>Server: 5. validate()
     Server->>App: 6. Verified phone_e164
 ```
 
-1. Your app calls `startAuth()` which generates a cryptographic nonce and redirects to Phonelink
+1. Your app calls `verify()` which generates a cryptographic nonce and redirects to Phonelink
 2. The user completes phone number verification on the Phonelink page
 3. Phonelink redirects back to your app with a signed JWT token
 4. Your app sends the token and nonce to your server
-5. Your server calls `verifyPhonelinkToken()` to validate the JWT signature, issuer, audience, nonce, and verification status
+5. Your server calls `validate()` to validate the JWT signature, issuer, audience, nonce, and verification status
 6. On success, your server receives the verified phone number in E.164 format
 
 ## Install
@@ -42,10 +42,9 @@ npm install phonelink
 <Cards>
   <Card title="Web (Vanilla JS)" href="/web/vanilla" description="Redirect-based flow for any web app" />
   <Card title="React" href="/web/react" description="usePhonelink hook for React apps" />
-  <Card title="Next.js" href="/web/nextjs" description="Full-stack recipe with App Router" />
   <Card title="Expo" href="/expo" description="In-app browser flow for React Native" />
 </Cards>
 
 ## Server verification
 
-Every integration requires server-side token verification. See the [Server Verification](/server) guide after setting up your client.
+Every integration requires server-side token verification. See the [Server Verification](/validate) guide after setting up your client.

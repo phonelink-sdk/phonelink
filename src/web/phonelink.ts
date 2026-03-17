@@ -16,9 +16,9 @@ function generateNonce(): string {
  * Web client for Phonelink phone number verification.
  *
  * Implements a redirect-based verification flow:
- * 1. Call `startAuth` to redirect the user to Phonelink
- * 2. On the callback page, call `handleCallback` to retrieve the token
- * 3. Send the token and nonce to your server for verification
+ * 1. Call `verify` to redirect the user to Phonelink
+ * 2. On the callback page, call `getResult` to retrieve the token
+ * 3. Send the token and nonce to your server for validation
  */
 export const phonelink = {
   /**
@@ -31,7 +31,7 @@ export const phonelink = {
    * @param clientId - Your Phonelink client ID
    * @param callbackUrl - The URL to redirect back to after verification
    */
-  startAuth(clientId: string, callbackUrl: string): void {
+  verify(clientId: string, callbackUrl: string): void {
     const nonce = generateNonce();
     sessionStorage.setItem(NONCE_KEY, nonce);
     window.location.href = buildAuthUrl(clientId, callbackUrl, nonce);
@@ -47,7 +47,7 @@ export const phonelink = {
    * @returns An object with `token` and `nonce` if a verification result is present,
    *          or `null` if no token is found in the URL
    */
-  handleCallback(): { token: string; nonce: string } | null {
+  getResult(): { token: string; nonce: string } | null {
     const token = new URLSearchParams(window.location.search).get("token");
     if (!token) return null;
 

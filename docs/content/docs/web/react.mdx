@@ -21,7 +21,7 @@ Phonelink requires React 18 or later as a peer dependency.
 import { usePhonelink } from "phonelink/web";
 
 function VerifyPhone() {
-  const { startAuth, result, isCallback } = usePhonelink({
+  const { verify, result, isCallback } = usePhonelink({
     clientId: "your-client-id",
     callbackUrl: "https://myapp.com/auth/callback",
   });
@@ -35,7 +35,7 @@ function VerifyPhone() {
   }
 
   return (
-    <button onClick={startAuth}>
+    <button onClick={verify}>
       Verify Phone Number
     </button>
   );
@@ -44,13 +44,13 @@ function VerifyPhone() {
 
 ## How it works
 
-The hook uses the same `phonelink.startAuth` and `phonelink.handleCallback` methods as the [vanilla JS integration](/web/vanilla), wrapped in React state management.
+The hook uses the same `phonelink.verify` and `phonelink.getResult` methods as the [vanilla JS integration](/web/vanilla), wrapped in React state management.
 
-**On mount**, the hook calls `phonelink.handleCallback()` to check if the current page is a callback page (i.e. the URL contains a `token` query parameter). If a token is found:
+**On mount**, the hook calls `phonelink.getResult()` to check if the current page is a callback page (i.e. the URL contains a `token` query parameter). If a token is found:
 - `result` is set to `{ token, nonce }`
 - `isCallback` is set to `true`
 
-**On the start page**, `result` is `null`, `isCallback` is `false`, and `startAuth()` is available to begin the flow.
+**On the start page**, `result` is `null`, `isCallback` is `false`, and `verify()` is available to begin the flow.
 
 ## Hook options
 
@@ -63,7 +63,7 @@ The hook uses the same `phonelink.startAuth` and `phonelink.handleCallback` meth
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `startAuth` | `() => void` | Call to redirect the user to Phonelink for verification |
+| `verify` | `() => void` | Call to redirect the user to Phonelink for verification |
 | `result` | `{ token: string; nonce: string } \| null` | The verification result, or `null` if not on callback page |
 | `isCallback` | `boolean` | `true` when the current page is the callback page |
 
@@ -76,7 +76,7 @@ import { usePhonelink } from "phonelink/web";
 import { useEffect, useState } from "react";
 
 function VerifyPhone() {
-  const { startAuth, result, isCallback } = usePhonelink({
+  const { verify, result, isCallback } = usePhonelink({
     clientId: "your-client-id",
     callbackUrl: "https://myapp.com/auth/callback",
   });
@@ -100,7 +100,7 @@ function VerifyPhone() {
   if (phone) return <p>Verified: {phone}</p>;
   if (isCallback) return <p>Verifying...</p>;
 
-  return <button onClick={startAuth}>Verify Phone Number</button>;
+  return <button onClick={verify}>Verify Phone Number</button>;
 }
 ```
 
@@ -108,11 +108,11 @@ function VerifyPhone() {
 
 If you use `usePhonelink` in a component that renders on both the start page and the callback page (e.g. in a single-page app), the hook handles both cases automatically:
 
-- On the start page: `result` is `null`, use `startAuth` to begin
+- On the start page: `result` is `null`, use `verify` to begin
 - On the callback page: `result` is populated, `isCallback` is `true`
 
 This makes it easy to use a single component for the entire flow without any routing logic.
 
 ## Server verification
 
-After receiving the result on your frontend, always verify the token on your server. See the [Server Verification](/server) guide.
+After receiving the result on your frontend, always verify the token on your server. See the [Server Verification](/validate) guide.

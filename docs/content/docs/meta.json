@@ -1,12 +1,11 @@
 {
   "title": "Phonelink",
   "pages": [
-    "---Getting Started---",
     "index",
     "---Integration Guides---",
     "...web",
     "...expo",
-    "...server",
+    "...validate",
     "---Reference---",
     "...api-reference",
     "security",

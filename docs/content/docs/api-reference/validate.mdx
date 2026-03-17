@@ -1,20 +1,20 @@
 ---
-title: phonelink/server
+title: phonelink/validate
 description: API reference for the Phonelink server-side token verification.
 ---
 
 ## Exports
 
-The `phonelink/server` entry point exports the following:
+The `phonelink/validate` entry point exports the following:
 
 | Export | Type | Description |
 | --- | --- | --- |
-| `verifyPhonelinkToken` | `function` | Verifies a Phonelink JWT token |
+| `validate` | `function` | Verifies a Phonelink JWT token |
 | `PhonelinkPayload` | `type` | TypeScript type for the decoded JWT payload |
 
 ---
 
-## `verifyPhonelinkToken(token, expectedNonce, expectedAud)`
+## `validate(token, expectedNonce, expectedAud)`
 
 Verifies a Phonelink JWT token against the JWKS endpoint.
 
@@ -56,7 +56,7 @@ Resolves with the verified payload on success.
 
 ## `PhonelinkPayload`
 
-TypeScript interface for the decoded JWT payload returned by `verifyPhonelinkToken`.
+TypeScript interface for the decoded JWT payload returned by `validate`.
 
 | Property | Type | Description |
 | --- | --- | --- |
@@ -73,5 +73,5 @@ TypeScript interface for the decoded JWT payload returned by `verifyPhonelinkTok
 | `jti` | `string` | Unique identifier for this specific token |
 
 ```ts
-import type { PhonelinkPayload } from "phonelink/server";
+import type { PhonelinkPayload } from "phonelink/validate";
 ```
