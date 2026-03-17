@@ -5,7 +5,7 @@
   "homepage": "https://docs.phone.link",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vrl-inc/phonelink.git"
+    "url": "git+https://github.com/phonelink-sdk/phonelink.git"
   },
   "license": "MIT",
   "keywords": ["phone", "verification", "auth", "e164", "jwt", "react", "expo", "nextjs"],
