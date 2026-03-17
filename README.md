@@ -17,10 +17,10 @@ npm install phonelink
 import { phonelink } from "phonelink/web";
 
 // Start the verification flow
-phonelink.verify("your-client-id", "https://myapp.com/callback");
+phonelink.startVerify("your-client-id", "https://myapp.com/callback");
 
 // On the callback page, get the result
-const result = phonelink.getResult();
+const result = phonelink.getRedirectResult();
 
 // Send to your server for verification
 await fetch("/api/verify", {
