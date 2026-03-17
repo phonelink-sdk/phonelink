@@ -14,11 +14,9 @@ export interface UsePhonelinkOptions {
 /** Return value of the {@link usePhonelink} hook. */
 export interface UsePhonelinkReturn {
   /** Initiates the phone verification flow by redirecting to Phonelink. */
-  verify: () => void;
-  /** The verification result containing `token` and `nonce`, or `null` if not yet available. */
-  result: { token: string; nonce: string } | null;
-  /** Whether the current page is the callback page (i.e. the URL contains a token). */
-  isCallback: boolean;
+  startVerify: () => void;
+  /** The redirect verification result containing `token` and `nonce`, or `null` if not yet available. */
+  redirectResult: { token: string; nonce: string } | null;
 }
 
 /**
@@ -26,46 +24,43 @@ export interface UsePhonelinkReturn {
  *
  * Manages the entire redirect-based verification flow. On mount, it checks whether
  * the current page is a callback page by looking for a `token` query parameter.
- * If found, it populates `result` with the token and nonce.
+ * If found, it populates `redirectResult` with the token and nonce.
  *
  * @param options - Configuration with your `clientId` and `callbackUrl`
- * @returns An object with `verify` to begin the flow, `result` with the verification
- *          outcome, and `isCallback` indicating if this is the callback page
+ * @returns An object with `startVerify` to begin the flow and `redirectResult` with
+ *          the verification outcome
  *
  * @example
  * ```tsx
  * import { usePhonelink } from "phonelink/web";
  *
  * function VerifyButton() {
- *   const { verify, result, isCallback } = usePhonelink({
+ *   const { startVerify, redirectResult } = usePhonelink({
  *     clientId: "your-client-id",
  *     callbackUrl: "https://myapp.com/auth/callback",
  *   });
  *
- *   if (result) return <p>Verified! Confirming...</p>;
- *   if (isCallback) return <p>Processing...</p>;
- *   return <button onClick={verify}>Verify Phone</button>;
+ *   if (redirectResult) return <p>Verified! Confirming...</p>;
+ *   return <button onClick={startVerify}>Verify Phone</button>;
  * }
  * ```
  */
 export function usePhonelink(options: UsePhonelinkOptions): UsePhonelinkReturn {
-  const [result, setResult] = useState<{
+  const [redirectResult, setRedirectResult] = useState<{
     token: string;
     nonce: string;
   } | null>(null);
-  const [isCallback, setIsCallback] = useState(false);
 
   useEffect(() => {
-    const callbackResult = phonelink.getResult();
+    const callbackResult = phonelink.getRedirectResult();
     if (callbackResult) {
-      setResult(callbackResult);
-      setIsCallback(true);
+      setRedirectResult(callbackResult);
     }
   }, []);
 
-  const verify = useCallback(() => {
-    phonelink.verify(options.clientId, options.callbackUrl);
+  const startVerify = useCallback(() => {
+    phonelink.startVerify(options.clientId, options.callbackUrl);
   }, [options.clientId, options.callbackUrl]);
 
-  return { verify, result, isCallback };
+  return { startVerify, redirectResult };
 }
